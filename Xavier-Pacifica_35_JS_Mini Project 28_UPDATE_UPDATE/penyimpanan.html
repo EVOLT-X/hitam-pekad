@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project28</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    table, th, td {
+      border: 1px solid black;
+    }
+    th, td {
+      padding: 8px;
+      text-align: left;
+    }
+    .action-btn {
+      padding: 10px 15px;
+      margin-top: 5px;
+      display: block;
+      font-size: 14px;
+      width: 80px;
+    }
+    .delete-btn {
+      margin-top: 5px;
+      padding: 10px 15px;
+      display: block;
+      font-size: 14px;
+      width: 80px;
+    }
+    form {
+      margin-bottom: 20px;
+    }
+    input[type="text"], input[type="number"] {
+      margin-right: 10px;
+      padding: 5px;
+    }
+    img {
+      max-width: 100px;
+      max-height: 100px;
+      display: block;
+    }
+    .overweight {
+      background-color: red;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <form id="fruitForm">
+    <label>
+      Nama Buah:
+      <input type="text" id="fruitName" required style="margin-left: 10px;">
+    </label>
+    <br><br>
+    <label>
+      Berat (Kg):
+      <input type="number" id="fruitWeight" required style="margin-left: 18px;">
+    </label>
+    <br><br>
+    <label>
+      Gambar URL:
+      <input type="text" id="fruitImage" required>
+    </label>
+    <br><br>
+    <button style="margin-left: 96px;" type="button" onclick="addFruit()">Add</button>
+  </form>
+
+  <table>
+    <thead>
+      <tr>
+        <th>No</th>
+        <th>Nama Buah</th>
+        <th>Berat (Kg)</th>
+        <th>Gambar</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="fruitTable">
+    </tbody>
+  </table>
+
+  <script>
+    let fruits = [];  
+
+    function addFruit() {
+      const name = document.getElementById("fruitName").value;
+      const weight = parseFloat(document.getElementById("fruitWeight").value);
+      const imageUrl = document.getElementById("fruitImage").value;
+
+      if (name && weight && imageUrl) {
+        if (weight > 5) {
+          alert("Berat melebihi 5kg!");
+        }
+
+        const fruit = { name, weight, imageUrl };
+        fruits.push(fruit);  
+
+        document.getElementById("fruitForm").reset();
+        updateTable();
+      } else {
+        alert("Harap isi semua kolom!");
+      }
+    }
+
+    function updateTable() {
+      const tableBody = document.getElementById("fruitTable");
+      tableBody.innerHTML = ""; 
+
+      fruits.forEach((fruit, index) => {
+        const newRow = tableBody.insertRow();
+        newRow.innerHTML = `
+          <td>${index + 1}</td>
+          <td><span>${fruit.name}</span><input type="text" value="${fruit.name}" style="display:none;"></td>
+          <td class="${fruit.weight > 5 ? 'overweight' : ''}">
+            <span>${fruit.weight}</span><input type="number" value="${fruit.weight}" style="display:none;">
+          </td>
+          <td>
+            <span>
+              <img src="${fruit.imageUrl}" alt="${fruit.name}" style="max-width: 100px; max-height: 100px;" 
+                 onerror="this.src='https://via.placeholder.com/100';">
+            </span>
+            <input type="text" value="${fruit.imageUrl}" style="display:none;">
+          </td>
+          <td>
+            <button class="action-btn" onclick="editRow(this)">Edit</button>
+            <button class="action-btn delete-btn" onclick="deleteRow(this)">Hapus</button>
+          </td>
+        `;
+      });
+    }
+
+    function editRow(button) {
+      const row = button.parentElement.parentElement;
+      const spans = row.querySelectorAll("span");
+      const inputs = row.querySelectorAll("input");
+      const deleteButton = row.querySelector(".delete-btn");
+      const weightCell = row.cells[2]; 
+
+      if (button.textContent === "Edit") {
+        spans.forEach(span => span.style.display = "none");
+        inputs.forEach(input => input.style.display = "inline");
+        button.textContent = "Save";
+        deleteButton.style.display = "none"; 
+      } else {
+        inputs.forEach((input, index) => {
+          if (index === 2) {
+            const img = row.querySelector("img");
+            img.src = input.value || 'https://via.placeholder.com/100';
+          } else {
+            spans[index].textContent = input.value;
+          }
+          spans[index].style.display = "inline";
+          input.style.display = "none";
+        });
+
+        const newWeight = parseFloat(inputs[1].value);
+        if (newWeight > 5) {
+          alert("Berat melebihi 5kg!");
+          weightCell.classList.add("overweight");
+        } else {
+          weightCell.classList.remove("overweight");
+        }
+
+        button.textContent = "Edit";
+        deleteButton.style.display = "inline"; 
+        
+        const rowIndex = Array.from(row.parentElement.children).indexOf(row);
+        fruits[rowIndex] = {
+          name: spans[0].textContent,
+          weight: newWeight,
+          imageUrl: spans[2].querySelector("img").src
+        };
+      }
+    }
+
+    function deleteRow(button) {
+      const row = button.parentElement.parentElement;
+      const rowIndex = Array.from(row.parentElement.children).indexOf(row);
+      fruits.splice(rowIndex, 1);  
+      row.remove();  
+    }
+  </script>
+</body>
+</html>
